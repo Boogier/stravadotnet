@@ -59,6 +59,7 @@ namespace Strava.Activities
 
         /// <summary>
         /// Total number of photos (uploaded by the user and Instagram).
+        /// Warning! This value can be wrong!
         /// </summary>
         [JsonProperty("total_photo_count")]
         public int TotalPhotoCount { get; set; }
