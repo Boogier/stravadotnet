@@ -1,28 +1,13 @@
 Strava.NET
 ============
 
-NOTE: Visit the new homepage at www.sascha-simon.com for more information and updates on the Strava Client using the framework.
+Forked from https://github.com/chrisbarber7/stravadotnet
 
-Current version: 3.3.0 (2015-09-10)
-
-You can now check out the Samples-Project: [Samples-project on GitHub](https://github.com/inexcitus/stravasamples)
-
-[Changelog](http://www.sascha-simon.com/Changelog)
-
-Hopefully this small framework makes using the Strava API a little bit easier!
-Please keep in mind that this framework is in a pretty early stage and things are about to change.
-Kudos to Strava for letting people use data uploaded to Strava! Strava.NET uses the great Json.NET library from James Newton-King - such a great piece of code.
-
-You can get the framework by using NuGet:
-
-    PM> Install-Package Strava.NET
-
-Feedback
+License
 ============
 
-If you have any feedback, bug reports or suggestions, feel free to send me an email.
-My mail address is strava (at) sascha-simon (dot) com.
-
+GNU GENERAL PUBLIC LICENSE
+https://www.gnu.org/licenses/gpl-3.0.txt
 
 Getting an access token from Strava
 ============
