@@ -9,11 +9,17 @@ namespace Strava.Activities
     /// </summary>
     public class Photo
     {
-        /// <summary>
-        /// The photo's id.
-        /// </summary>
-        [JsonProperty("id")]
-        public long Id { get; set; }
+        [JsonProperty("urls")]
+        public Dictionary<int, string> Urls { get; set; } = new();
+
+        [JsonProperty("created_at")]
+        public DateTime CreatedAt { get; set; }
+
+        [JsonProperty("created_at_local")]
+        public DateTime CreatedAtLocal { get; set; }
+
+        [JsonProperty("unique_id")]
+        public Guid Id { get; set; }
 
         /// <summary>
         /// The id of the activity to which the photo is connected to.
@@ -56,12 +62,6 @@ namespace Strava.Activities
         /// </summary>
         [JsonProperty("uploaded_at")]
         public string UploadedAt { get; set; }
-
-        /// <summary>
-        /// The date when the image was crated.
-        /// </summary>
-        [JsonProperty("created_at")]
-        public string CreatedAt { get; set; }
 
         /// <summary>
         /// The location where the picture was taken.

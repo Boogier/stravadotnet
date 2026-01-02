@@ -11,6 +11,21 @@ namespace Strava.Activities
     /// </summary>
     public class ActivitySummary : ActivityMeta
     {
+        [JsonProperty("workout_type", NullValueHandling = NullValueHandling.Ignore)]
+        private int _workoutType;
+
+        [JsonProperty("sport_type", NullValueHandling = NullValueHandling.Ignore)]
+        private string _sportType = "";
+
+        [JsonProperty("type", NullValueHandling = NullValueHandling.Ignore)]
+        private string _type = "";
+
+        public WorkoutType WorkoutType => (WorkoutType)_workoutType;
+
+        public string SportType => _sportType;
+
+        public string Type => _type;
+
         /// <summary>
         /// The activity's name.
         /// </summary>
@@ -22,20 +37,6 @@ namespace Strava.Activities
         /// </summary>
         [JsonProperty("external_id")]
         public string ExternalId { get; set; }
-
-        /// <summary>
-        /// The type of the activity.
-        /// </summary>
-        [JsonProperty("type")]
-        private string _type { get; set; }
-
-        /// <summary>
-        /// The type of the activity.
-        /// </summary>
-        public ActivityType Type
-        {
-            get { return (ActivityType) Enum.Parse(typeof (ActivityType), _type); }
-        }
 
         /// <summary>
         /// The suffer score.
