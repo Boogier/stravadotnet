@@ -13,10 +13,14 @@ namespace Strava.Activities
         public Dictionary<int, string> Urls { get; set; } = new();
 
         [JsonProperty("created_at")]
-        public DateTime CreatedAt { get; set; }
+        private string? _createdAt { get; set; }
+
+        public DateTime? CreatedAt => DateTime.TryParse(_createdAt, out var d) ? d : null;
 
         [JsonProperty("created_at_local")]
-        public DateTime CreatedAtLocal { get; set; }
+        private string? _createdAtLocal { get; set; }
+
+        public DateTime? CreatedAtLocal => DateTime.TryParse(_createdAt, out var d) ? d : null;
 
         [JsonProperty("unique_id")]
         public Guid Id { get; set; }
