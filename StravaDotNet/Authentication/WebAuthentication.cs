@@ -1,91 +1,64 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
+using System.Threading.Tasks;
 
-namespace Strava.Authentication
+namespace Strava.Authentication;
+
+/// <summary>
+/// This class is used to start a local web server to receive a callback message from Strava. This message 
+/// contains a auth token. This token is then used to obtain an access token.
+/// Using this class requires admin privileges.
+/// </summary>
+public class WebAuthentication : IAuthentication
 {
-    /// <summary>
-    /// This class is used to start a local web server to receive a callback message from Strava. This message 
-    /// contains a auth token. This token is then used to obtain an access token.
-    /// Using this class requires admin privileges.
-    /// </summary>
-    public class WebAuthentication : IAuthentication
+    public WebAuthentication(string accessToken)
     {
-        /// <summary>
-        /// AccessTokenReceived is raised when an access token is received from the Strava server.
-        /// </summary>
-        public event EventHandler<TokenReceivedEventArgs> AccessTokenReceived;
+        AccessToken = accessToken;
+    }
 
-        /// <summary>
-        /// AuthCodeReceived is raised when an auth token is received from the Strava server.
-        /// </summary>
-        public event EventHandler<AuthCodeReceivedEventArgs> AuthCodeReceived;
+    /// <summary>
+    /// The access token that was received from the Strava server.
+    /// </summary>
+    public string AccessToken { get; private set; }
 
-        /// <summary>
-        /// The access token that was received from the Strava server.
-        /// </summary>
-        public string AccessToken { get; set; }
-
-        /// <summary>
-        /// the auth token that was received from the Strava server.
-        /// </summary>
-        public string AuthCode { get; set; }
-
-        /// <summary>
-        /// Loads an access token asynchronously from the Strava servers. Invoking this method opens a web browser.
-        /// </summary>
-        /// <param name="clientId">The client id from your application (provided by Strava).</param>
-        /// <param name="clientSecret">The client secret (provided by Strava).</param>
-        /// <param name="scope">Define what your application is allowed to do.</param>
-        /// <param name="callbackPort">Define the callback port (optional, default value is 1895). Only change this, 
-        /// if the default port 1895 is already used on your machine.</param>
-        public void GetTokenAsync(string clientId, string clientSecret, Scope scope, int callbackPort = 1895)
+    /// <summary>
+    /// Loads an access token asynchronously from the Strava servers. Invoking this method opens a web browser.
+    /// </summary>
+    /// <param name="clientId">The client id from your application (provided by Strava).</param>
+    /// <param name="clientSecret">The client secret (provided by Strava).</param>
+    /// <param name="scopeLevel">Define what your application is allowed to do.</param>
+    /// <param name="callbackPort">Define the callback port (optional, default value is 1895). Only change this, 
+    /// if the default port 1895 is already used on your machine.</param>
+    public Task GetTokenAsync(string clientId, string clientSecret, string scopeLevel, int callbackPort = 18795)
+    {
+        var server = new LocalWebServer($"http://localhost:{callbackPort}/")
         {
-            LocalWebServer server = new LocalWebServer(string.Format("http://*:{0}/", callbackPort));
-            server.ClientId = clientId;
-            server.ClientSecret = clientSecret;
+            ClientId = clientId,
+            ClientSecret = clientSecret
+        };
 
-            server.AccessTokenReceived += delegate(object sender, TokenReceivedEventArgs args)
+        var tcs = new TaskCompletionSource();
+
+        server.AccessTokenReceived += delegate(object sender, TokenReceivedEventArgs args)
+        {
+            if (args.Token != null)
             {
-                if (AccessTokenReceived != null)
-                {
-                    AccessTokenReceived(this, args);
-                    AccessToken = args.Token;
-                }
-            };
-
-            server.AuthCodeReceived += delegate(object sender, AuthCodeReceivedEventArgs args)
-            {
-                if (AuthCodeReceived != null)
-                {
-                    AuthCodeReceived(this, args);
-                    AuthCode = args.AuthCode;
-                }
-            };
-
-            server.Start();
-
-            string url = "https://www.strava.com/oauth/authorize";
-            string scopeLevel = string.Empty;
-
-            switch (scope)
-            {
-                case Scope.Full:
-                    scopeLevel = "view_private,write";
-                    break;
-                case Scope.Public:
-                    scopeLevel = "public";
-                    break;
-                case Scope.ViewPrivate:
-                    scopeLevel = "view_private";
-                    break;
-                case Scope.Write:
-                    scopeLevel = "write";
-                    break;
+                AccessToken = args.Token;
+                tcs.TrySetResult();
+                server.Stop();
             }
+        };
 
-            Process process = new Process();
-            process.StartInfo = new ProcessStartInfo(string.Format("{0}?client_id={1}&response_type=code&redirect_uri=http://localhost:{2}&scope={3}&approval_prompt=auto", url, clientId, callbackPort, scopeLevel));
-            process.Start();
-        }
+        server.Start();
+
+        var authorizationUrl =
+            $"https://www.strava.com/oauth/authorize?client_id={clientId}&redirect_uri=http://localhost:{callbackPort}&response_type=code&scope=activity:read_all";
+
+        Process.Start(new ProcessStartInfo
+        {
+            FileName = authorizationUrl,
+            UseShellExecute = true
+        });
+
+        return tcs.Task;
     }
 }

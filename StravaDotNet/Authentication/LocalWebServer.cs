@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Collections.Specialized;
 using System.IO;
 using System.Net;
 using System.Text;
-using System.Threading;
+using System.Threading.Tasks;
 using Strava.Common;
 
 namespace Strava.Authentication
@@ -33,8 +32,8 @@ namespace Strava.Authentication
         /// The Client secret provided by Strava upon registering your application.
         /// </summary>
         public string ClientSecret { get; set; }
-        
-        private HttpListener _httpListener = new HttpListener();
+
+        private HttpListener _httpListener = new();
         private HttpListenerContext _context;
 
         /// <summary>
@@ -54,7 +53,7 @@ namespace Strava.Authentication
         {
             _httpListener.Start();
 
-            new Thread(ProcessRequest).Start();
+            _ = ProcessRequestAsync();
         }
 
         /// <summary>
@@ -68,15 +67,15 @@ namespace Strava.Authentication
         /// <summary>
         /// Processes a request.
         /// </summary>
-        public async void ProcessRequest()
+        public async Task ProcessRequestAsync()
         {
-            _context = _httpListener.GetContext();
-            NameValueCollection queries = _context.Request.QueryString;
+            _context = await _httpListener.GetContextAsync().ConfigureAwait(false);
+            var queries = _context.Request.QueryString;
 
             // Access Token laden
             // 0 = state
             // 1 = code
-            string code = queries.GetValues(1)[0];
+            var code = queries.GetValues(1)[0];
 
             if (!string.IsNullOrEmpty(code))
             {
@@ -87,30 +86,29 @@ namespace Strava.Authentication
             }
 
             // Save token to hard disk
-            string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "StravaApi");
-            string file = Path.Combine(path, "AccessToken.auth");
+            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "StravaApi");
+            var file = Path.Combine(path, "AccessToken.auth");
 
             if (!Directory.Exists(path))
             {
                 Directory.CreateDirectory(path);
             }
 
-            FileStream stream = new FileStream(file, FileMode.OpenOrCreate);
+            var stream = new FileStream(file, FileMode.OpenOrCreate);
             stream.Write(Encoding.UTF8.GetBytes(code), 0, Encoding.UTF8.GetBytes(code).Length);
             stream.Close();
 
-            // Antwort liefen und anzeigen
-            byte[] b = Encoding.UTF8.GetBytes("Access token was loaded - You can close your browser window.");
+            var b = Encoding.UTF8.GetBytes("Access token was loaded - You can close your browser window.");
             _context.Response.ContentLength64 = b.Length;
-            _context.Response.OutputStream.Write(b, 0, b.Length);
+            await _context.Response.OutputStream.WriteAsync(b, 0, b.Length).ConfigureAwait(false);
             _context.Response.OutputStream.Close();
 
 
             // Getting the Access Token
-            string url = string.Format("https://www.strava.com/oauth/token?client_id={0}&client_secret={1}&code={2}", ClientId, ClientSecret, code);
-            string json = await Http.WebRequest.SendPostAsync(new Uri(url));
+            var url = $"https://www.strava.com/oauth/token?client_id={ClientId}&client_secret={ClientSecret}&code={code}";
+            var json = await Http.WebRequest.SendPostAsync(new Uri(url));
 
-            AccessToken auth = Unmarshaller<AccessToken>.Unmarshal(json);
+            var auth = Unmarshaller<AccessToken>.Unmarshal(json);
 
             if (!string.IsNullOrEmpty(auth.Token))
             {
