@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
-using Strava.Athletes;
 using Newtonsoft.Json;
+using Strava.Athletes;
 
 namespace Strava.Activities
 {
@@ -212,7 +213,7 @@ namespace Strava.Activities
         /// Start date of the activity.
         /// </summary>
         [JsonProperty("start_date")]
-        public string StartDate { get; set; }
+        private string StartDate { get; set; }
         
         /// <summary>
         /// Local start date of the activity.
@@ -223,10 +224,7 @@ namespace Strava.Activities
         /// <summary>
         /// Returns the StartDate-Property as a DateTime object.
         /// </summary>
-        public DateTime DateTimeStart
-        {
-            get { return DateTime.Parse(StartDate); }
-        }
+        public DateTime DateTimeStart => DateTime.Parse(StartDate, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal);
 
         /// <summary>
         /// Returns the StartDateLocal-Property as a DateTime object.

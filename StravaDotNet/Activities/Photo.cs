@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using Newtonsoft.Json;
 
 namespace Strava.Activities
@@ -15,7 +16,7 @@ namespace Strava.Activities
         [JsonProperty("created_at")]
         private string? _createdAt { get; set; }
 
-        public DateTime? CreatedAt => DateTime.TryParse(_createdAt, out var d) ? d : null;
+        public DateTime? CreatedAt => DateTime.TryParse(_createdAt, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out var d) ? d : null;
 
         [JsonProperty("created_at_local")]
         private string? _createdAtLocal { get; set; }
