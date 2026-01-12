@@ -594,15 +594,16 @@ public class ActivityClient : BaseClient
     /// Gets all the activities recorded after the specified date from Strava.
     /// </summary>
     /// <param name="after">The date.</param>
+    /// <param name="before"></param>
     /// <returns>A list of activities recorded after the specified date.</returns>
-    public List<ActivitySummary> GetActivitiesAfter(DateTime after)
+    public List<ActivitySummary> GetActivitiesAfter(DateTime after, DateTime? before = null)
     {
         var activities = new List<ActivitySummary>();
         int page = 1;
         bool hasEntries = true;
         while (hasEntries)
         {
-            var request = GetActivitiesAfter(after, page++, 200);
+            var request = GetActivitiesAfter(after, before, page++, 200);
             if (request.Count == 0)
             {
                 hasEntries = false;
@@ -625,12 +626,14 @@ public class ActivityClient : BaseClient
     /// Gets all the activities recorded after the specified date from Strava.
     /// </summary>
     /// <param name="after">The date.</param>
+    /// <param name="before"></param>
     /// <param name="page">The page of the list of activities.</param>
     /// <param name="perPage">The amount of activities per page.</param>
     /// <returns>A list of activities recorded after the specified date.</returns>
-    public List<ActivitySummary> GetActivitiesAfter(DateTime after, int page, int perPage)
+    public List<ActivitySummary> GetActivitiesAfter(DateTime after, DateTime? before, int page, int perPage)
     {
-        return Unmarshaller<List<ActivitySummary>>.Unmarshal(Http.WebRequest.SendGet(new Uri($"{"https://www.strava.com/api/v3/athlete/activities"}?after={DateConverter.GetSecondsSinceUnixEpoch(after)}&page={page}&per_page={perPage}&access_token={this.Authentication.AccessToken}")));
+        var beforeClause = before.HasValue ? $"&before={DateConverter.GetSecondsSinceUnixEpoch(before.Value)}" : "";
+        return Unmarshaller<List<ActivitySummary>>.Unmarshal(Http.WebRequest.SendGet(new Uri($"{"https://www.strava.com/api/v3/athlete/activities"}?after={DateConverter.GetSecondsSinceUnixEpoch(after)}{beforeClause}&page={page}&per_page={perPage}&access_token={this.Authentication.AccessToken}")));
     }
 
 
